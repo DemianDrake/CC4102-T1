@@ -41,6 +41,7 @@ public class Experiments {
                 System.out.printf("  * Tiempo de inserción: %d nanosegundos%n", results[0]);
                 System.out.printf("  * Tiempo de ordenamiento: %d nanosegundos%n", results[1]);
                 Files.delete(Path.of(tablePath));
+                src.resetClientId();
             } catch (IOException e) {
                 System.out.printf("Couldn't complete first experiment:%n" +
                         "Couldn't create database for 10^%d%n", power);
