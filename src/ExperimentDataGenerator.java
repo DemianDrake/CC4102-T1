@@ -31,11 +31,12 @@ public class ExperimentDataGenerator {
         double necessaryPointsScaling = ThreadLocalRandom.current().nextDouble(0.35, 0.6);
         double prizePointsScaling = ThreadLocalRandom.current().nextDouble(0.004, 0.12);
         nodo newProduct = new nodo();
-        newProduct.put("id", currentProductId);
+        newProduct.put("Tabla", "producto");
+        newProduct.put("id", Integer.toString(currentProductId));
         this.currentProductId += 1;
-        newProduct.put("precio", randomPrice);
-        newProduct.put("puntosNec", (int) (randomPrice * necessaryPointsScaling));
-        newProduct.put("puntosRec", (int) (randomPrice * prizePointsScaling));
+        newProduct.put("precio", Integer.toString(randomPrice));
+        newProduct.put("puntosNec", Integer.toString((int) (randomPrice * necessaryPointsScaling)));
+        newProduct.put("puntosRec", Integer.toString((int) (randomPrice * prizePointsScaling)));
         return newProduct;
     }
 
@@ -67,10 +68,11 @@ public class ExperimentDataGenerator {
         String rut = String.valueOf(randomRut) + "-" + verifier;
         // Create new client
         nodo newClient = new nodo();
-        newClient.put("id", currentClientId);
+        newClient.put("Table", "cliente");
+        newClient.put("id", Integer.toString(currentClientId));
         this.currentClientId += 1;
         newClient.put("rut", rut);
-        newClient.put("puntosAcumulados", randomPoints);
+        newClient.put("puntosAcumulados", Integer.toString(randomPoints));
         return newClient;
     }
 

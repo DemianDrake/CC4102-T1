@@ -40,7 +40,7 @@ public class Experiments {
                 System.out.printf("- Resultados para 10^%d:%n", power);
                 System.out.printf("  * Tiempo de inserción: %d nanosegundos%n", results[0]);
                 System.out.printf("  * Tiempo de ordenamiento: %d nanosegundos%n", results[1]);
-                Files.delete(Path.of(tablePath));
+                Files.delete(Path.of(tablePath)); // ???
                 src.resetClientId();
             } catch (IOException e) {
                 System.out.printf("Couldn't complete first experiment:%n" +
@@ -54,9 +54,9 @@ public class Experiments {
             throws IOException {
         String workingDir = System.getProperty("user.dir");
         Database db = new Database(workingDir);
-        String queryString = ("CREATE TABLE " + tableName + " id precio puntosNec puntosRec");
-
-        db.query(queryString);
+//        String queryString = ("CREATE TABLE " + tableName + " id precio puntosNec puntosRec");
+        db.createTable(tableName);
+//        db.query(queryString);
 
         long insertTime = 0;
         long orderTime;
@@ -73,7 +73,7 @@ public class Experiments {
                 preTime = System.nanoTime();
                 for (int j = 0; j < 1000; j++) {
                     // TODO crear función para insertar nodos en tabla
-                    // db.insert(tableName, nodeInserts[i]);
+                    db.insert(nodeInserts[i]);
                 }
                 postTime = System.nanoTime();
                 insertTime += (postTime - preTime);
@@ -86,7 +86,7 @@ public class Experiments {
             preTime = System.nanoTime();
             for (int i = 0; i < totalInserts; i++) {
                 // TODO crear función para insertar nodos en tabla
-                // db.insert(tableName, nodeInserts[i]);
+                db.insert(nodeInserts[i]);
             }
             postTime = System.nanoTime();
             insertTime = postTime - preTime;
@@ -94,9 +94,9 @@ public class Experiments {
 
         // Order
         // TODO Hacer la query correcta, quizas crear metodo para ejecutar order by saltando el parse de la query
-        queryString = (/* "SELECT * FROM " + tableName + */ " ORDER BY puntosNec");
+//        queryString = (/* "SELECT * FROM " + tableName + */ " ORDER BY puntosNec");
         preTime = System.nanoTime();
-        db.query(queryString);
+  //      db.query(queryString);
         postTime = System.nanoTime();
         orderTime = (postTime - preTime);
 

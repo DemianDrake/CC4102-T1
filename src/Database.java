@@ -1,87 +1,58 @@
 package src;
 
-import java.io.*;
-import java.nio.file.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 public class Database {
-	private String path;
+	private DataManager manager;
+	private BTree btree;
+	private Map<String, Integer> rowCount;
+	private boolean hasBTree;
+	private static final int B = 42; // stub
 	
 	public Database(String path) {
-		this.path = path;
+		manager = new TextFile(path);
+		rowCount = new HashMap<String, Integer>();
+		hasBTree = false;
 	}
 	
-	public String query(String q) throws IOException {
-		String r;
-		String[] query_args = q.split(" ");
-		switch(query_args[0]) {
-		case "CREATE":
-			if(query_args[1].equals("TABLE")) {
-				r = createTable(query_args);
-			} else {
-				throw new IOException("Invalid query");
-			}
-			break;
-		case "INSERT":
-			if(query_args[1].equals("INTO") && query_args[3].equals("VALUES")) {
-				r = insert(query_args);
-			} else {
-				throw new IOException("Invalid query");
-			}
-			break;
-		case "ORDER":
-			if(query_args[1].equals("BY")) {
-				r = orderBy(query_args);
-			} else {
-				throw new IOException("Invalid query");
-			}
-			break;
-		default:
-			throw new IOException("Invalid query");
+	public void createTable(String tablename) {
+		// Creates a data storage unit, delegating its type and form to DataManager
+		rowCount.put(tablename, 0);
+		if(!manager.create(tablename)) {
+			System.out.printf("An error ocurring while creating table %s", tablename);
 		}
-		return r;
+		if(hasBTree) {
+			btree = new BTree(B);
+		}
 	}
 	
-	/** Creates a file with the name of the table, containing as first line the column names
-	 * (There's no column type for simplification)
-	 * 
-	 * @param s	"CREATE TABLE tablename column1 column2 column3 ..."
-	 * 			s[0]	s[1]	s[2]	s[3]	s[4]	s[5]
-	 * @return
-	 */
-	private String createTable(String[] s) {
-		String filename = path.concat(s[2]);
-		try (PrintWriter p = new PrintWriter(new FileOutputStream(filename))) {
-			for(int i = 3; i < s.length; i++) {
-				p.print(s[i] + " ");
-			}
-			p.print('\n');
-			p.close();
-			// I suppose the output stream is also closed with that?
-		} catch (FileNotFoundException e) {
+	public void insert(nodo data) {
+		String tablename = data.getValueAsString("Table");
+		int id = rowCount.get(tablename);
+		data.put("id", Integer.toString(id));
+		id++;
+		rowCount.put(tablename, id);
+		long fp = manager.insertLine(data);
+		if(hasBTree) {
+			btree.put("id", fp);
+		}
+	}
+	
+	public void ordenar(String table, String key) {
+		String inputfile = manager.getPath() + table + ".txt";
+		String outputfile = manager.getPath() + "results.txt";
+		Comparator<String> comparator = new Comparator<String>() {
+            public int compare(String r1, String r2){
+                return r1.compareTo(r2);}};
+        List<File> l;
+		try {
+			l = ExternalSort.sortInBatch(new File(inputfile), comparator);
+	        ExternalSort.mergeSortedFiles(l, new File(outputfile), comparator);
+		} catch (IOException e) {
+			System.out.println("An error has ocurred in src.Database.ordenar by ExternalSort methods");
 			e.printStackTrace();
 		}
-		return "";
-	}
-	
-	private String insert(String[] s) {
-		String filename = path.concat(s[2]);
-		try (PrintWriter p = new PrintWriter(new FileOutputStream(filename))) {
-			for(int i = 4; i < s.length; i++) {
-				// I hope this doesn't overwrite what's in the file...
-				p.print(s[i] + " ");
-			}
-			p.print('\n');
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		return "";
-	}
-	
-	private String orderBy(String[] s) {
-		/* TODO
-		 * Open File
-		 * Order lines
-		 */
-		return "";
 	}
 }
