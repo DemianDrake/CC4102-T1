@@ -19,23 +19,23 @@ public class Experiments {
         for (int i = 0; i < (args.length - 1); i++) {
             tenthPowers[i] = Integer.parseInt(args[i]);
         }
-        int run_third = Integer.parseInt(args[args.length - 1]);
+        int runThird = Integer.parseInt(args[args.length - 1]);
 
         //Create databases for experiments
-        Database simple_db = new Database(System.getProperty("user.dir"));
+        Database simpleDb = new Database(System.getProperty("user.dir"));
         // TODO Crear db con btree, no entendi como hacerlo
-        Database btree_db = new Database(System.getProperty("user.dir"));
+        Database btreeDb = new Database(System.getProperty("user.dir"));
 
         // Run first experiment
-        firstExperiment(dataGenerator, tenthPowers, simple_db);
+        firstExperiment(dataGenerator, tenthPowers, simpleDb);
 
         // Run second experiment
-        secondExperiment(dataGenerator, tenthPowers, btree_db);
+        secondExperiment(dataGenerator, tenthPowers, btreeDb);
 
         // Run third experiment
-        if (run_third == 1) {
-            thirdExperiment(dataGenerator, simple_db, btree_db);
-        } else if (run_third != 0) {
+        if (runThird == 1) {
+            thirdExperiment(dataGenerator, simpleDb, btreeDb);
+        } else if (runThird != 0) {
             System.out.println("Argumento erroneo para el tercer experimento");
             System.exit(1);
         } else {
@@ -117,9 +117,8 @@ public class Experiments {
 
     }
 
-    private static void thirdExperiment(ExperimentDataGenerator src, Database text_db, Database btree_db) {
+    private static void thirdExperiment(ExperimentDataGenerator src, Database textDb, Database btreeDb) {
         System.out.println("Tercer Experimento");
-        // TODO Make third experiment
     }
 
 }
