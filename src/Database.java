@@ -6,15 +6,15 @@ import java.util.*;
 
 public class Database {
 	private DataManager manager;
-	private BTree btree;
 	private Map<String, Integer> rowCount;
+	private Map<String, BTree> bTrees;
 	private boolean hasBTree;
 	private static final int B = 42; // stub
 	
-	public Database(String path) {
+	public Database(String path, boolean hasBTree) {
 		manager = new TextFile(path);
 		rowCount = new HashMap<String, Integer>();
-		hasBTree = false;
+		this.hasBTree = hasBTree;
 	}
 
 	public boolean usesBTree(){
@@ -28,7 +28,7 @@ public class Database {
 			System.out.printf("An error ocurring while creating table %s", tablename);
 		}
 		if(hasBTree) {
-			btree = new BTree(B);
+			bTrees.put(tablename, new BTree(B));
 		}
 	}
 	
@@ -40,17 +40,23 @@ public class Database {
 		rowCount.put(tablename, id);
 		long fp = manager.insertLine(data);
 		if(hasBTree) {
-			btree.put("id", fp);
+			bTrees.get(tablename).put("id", fp);
 		}
 	}
 	
 	public String order(String table, String key) {
-		// TODO No veo que use la key, en que momento decide por que valor ordena?
 		String inputfile = manager.getPath() + table + ".txt";
 		String outputfile = manager.getPath() + String.valueOf(System.nanoTime()) + "_results.txt";
 		Comparator<String> comparator = new Comparator<String>() {
-            public int compare(String r1, String r2){
-                return r1.compareTo(r2);}};
+            public int compare(String r1, String r2) {
+            	// Supposedly r1 and r2 are rows, therefore nodes
+            	nodo n1, n2;
+            	String v1, v2;
+            	n1 = nodo.strToNode(r1);
+				v1 = n1.getValueAsString(key);
+	            n2 = nodo.strToNode(r2);
+	            v2 = n2.getValueAsString(key);
+                return v1.compareTo(v2);}};
         List<File> l;
 		try {
 			l = ExternalSort.sortInBatch(new File(inputfile), comparator);

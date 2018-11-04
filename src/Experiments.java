@@ -25,9 +25,8 @@ public class Experiments {
         int runThird = Integer.parseInt(args[args.length - 1]);
 
         //Create databases for experiments
-        Database simpleDb = new Database(System.getProperty("user.dir"));
-        // TODO Crear db con btree, no entendi como hacerlo
-        Database btreeDb = new Database(System.getProperty("user.dir"));
+        Database simpleDb = new Database(System.getProperty("user.dir"), false);
+        Database btreeDb = new Database(System.getProperty("user.dir"), true);
 
         // Run first experiment
         firstExperiment(dataGenerator, tenthPowers, simpleDb);

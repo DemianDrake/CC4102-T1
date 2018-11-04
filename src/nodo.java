@@ -103,9 +103,8 @@ public class nodo {
 	 * @param str			table(key1=[type,value1];key2=[type,value2];...)
 	 * 						table(key1=value1;key2=value2;...)
 	 * @return				A node from class nodo with the given data
-	 * @throws Exception 	When a type other than Integer or String is found
 	 */
-	public static nodo strToNode(String str) throws Exception {
+	public static nodo strToNode(String str) {
 		nodo r = new nodo();
 		int i = 0, j = i + 1;
 		char c = str.charAt(0);
