@@ -72,7 +72,7 @@ public class Experiments {
 
         // Index by BTree if necessary
         if (db.usesBTree()) {
-            // TODO hacer el BTree para puntosNec si la DB usa BTree (no entendi como hacer una db con BTree)
+            // TODO hacer el BTree para puntosAcumulados si la DB usa BTree (no entendi como hacer una db con BTree)
         }
 
         long insertTime = 0;
@@ -109,7 +109,7 @@ public class Experiments {
 
         // Order
         preTime = System.nanoTime();
-        db.order(tableName, "puntosNec");
+        db.order(tableName, "puntosAcumulados");
         postTime = System.nanoTime();
         orderTime = (postTime - preTime);
 
