@@ -1,62 +1,79 @@
 package src;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 // Runs the experiments required
 public class Experiments {
 
     public static void main(String args[]) {
-        /* args[] are the powers of tenth that are used to run the experiments.
-         * For example, if one wants to run the experiments with 10^2, 10^3 and 10^4, args
-         * would be {"2", "3", "4"}. */
+        /* args[] are the powers of tenth that are used to run the experiments, they must be integers (as Strings), and
+         * the last one is used to determine if the third experiment is run: if it's 1 the experiment runs, if it's 0
+         * the experiment is skipped and if it's any other exits the program with exit code 1.
+         * For example, if one wants to run the experiments with 10^2, 10^3 and 10^4 and run the third experiment, args
+         * would be {"2", "3", "4", "1"}. */
 
         // Create a new data generator
         ExperimentDataGenerator dataGenerator = new ExperimentDataGenerator();
 
-        // Test generator and parseToString, uncomment to test
-        // System.out.println(dataGenerator.generateProduct().parseToString());
-        // System.out.println(dataGenerator.generateClient().parseToString());
-
         // Transform arguments to int
-        int[] tenthPowers = new int[args.length];
-        for (int i = 0; i < args.length; i++) {
+        int[] tenthPowers = new int[args.length - 1];
+        for (int i = 0; i < (args.length - 1); i++) {
             tenthPowers[i] = Integer.parseInt(args[i]);
         }
+        int run_third = Integer.parseInt(args[args.length - 1]);
+
+        //Create databases for experiments
+        Database simple_db = new Database(System.getProperty("user.dir"));
+        // TODO Crear db con btree, no entendi como hacerlo
+        Database btree_db = new Database(System.getProperty("user.dir"));
 
         // Run first experiment
-        firstExperiment(dataGenerator, tenthPowers);
+        firstExperiment(dataGenerator, tenthPowers, simple_db);
 
+        // Run second experiment
+        secondExperiment(dataGenerator, tenthPowers, btree_db);
+
+        // Run third experiment
+        if (run_third == 1) {
+            thirdExperiment(dataGenerator, simple_db, btree_db);
+        } else if (run_third != 0) {
+            System.out.println("Argumento erroneo para el tercer experimento");
+            System.exit(1);
+        } else {
+            System.out.println("Tercer experimento no ejecutado");
+        }
 
     }
 
-    private static void firstExperiment(ExperimentDataGenerator src, int[] tenthPowers) {
+    private static void firstExperiment(ExperimentDataGenerator src, int[] tenthPowers, Database db) {
         System.out.println("Primer Experimento");
+        generalExperiment(src, tenthPowers, db, "_1");
+    }
+
+    private static void secondExperiment(ExperimentDataGenerator src, int[] tenthPowers, Database db) {
+        System.out.println("Segundo Experimento");
+        generalExperiment(src, tenthPowers, db, "_2");
+    }
+
+
+    private static void generalExperiment(ExperimentDataGenerator src, int[] tenthPowers, Database db, String suffix) {
         for (int power : tenthPowers) {
-            try {
-                long[] results = firstExperimentSingleCase(src, power, ("clientes_10^" + String.valueOf(power)));
-                String tablePath = (System.getProperty("user.dir") + "/clientes_10^" + String.valueOf(power));
-                System.out.printf("- Resultados para 10^%d:%n", power);
-                System.out.printf("  * Tiempo de inserción: %d nanosegundos%n", results[0]);
-                System.out.printf("  * Tiempo de ordenamiento: %d nanosegundos%n", results[1]);
-                Files.delete(Path.of(tablePath)); // ???
-                src.resetClientId();
-            } catch (IOException e) {
-                System.out.printf("Couldn't complete first experiment:%n" +
-                        "Couldn't create database for 10^%d%n", power);
-                System.exit(1);
-            }
+            long[] results = experimentSingleCase(
+                    src, power, ("clientes_10^" + String.valueOf(power) + suffix), db);
+            System.out.printf("- Resultados para 10^%d:%n", power);
+            System.out.printf("  * Tiempo de inserción: %d nanosegundos%n", results[0]);
+            System.out.printf("  * Tiempo de ordenamiento: %d nanosegundos%n", results[1]);
         }
     }
 
-    private static long[] firstExperimentSingleCase(ExperimentDataGenerator src, int tenthPower, String tableName)
-            throws IOException {
-        String workingDir = System.getProperty("user.dir");
-        Database db = new Database(workingDir);
-//        String queryString = ("CREATE TABLE " + tableName + " id precio puntosNec puntosRec");
+    private static long[] experimentSingleCase(ExperimentDataGenerator src, int tenthPower, String tableName,
+                                               Database db) {
+
         db.createTable(tableName);
-//        db.query(queryString);
+
+        // Index by BTree if necessary
+        if (db.usesBTree()) {
+            // TODO hacer el BTree para puntosNec si la DB usa BTree (no entendi como hacer una db con BTree)
+        }
 
         long insertTime = 0;
         long orderTime;
@@ -72,7 +89,6 @@ public class Experiments {
                 }
                 preTime = System.nanoTime();
                 for (int j = 0; j < 1000; j++) {
-                    // TODO crear función para insertar nodos en tabla
                     db.insert(nodeInserts[i]);
                 }
                 postTime = System.nanoTime();
@@ -85,23 +101,25 @@ public class Experiments {
             }
             preTime = System.nanoTime();
             for (int i = 0; i < totalInserts; i++) {
-                // TODO crear función para insertar nodos en tabla
                 db.insert(nodeInserts[i]);
             }
             postTime = System.nanoTime();
-            insertTime = postTime - preTime;
+            insertTime = (postTime - preTime);
         }
 
         // Order
-        // TODO Hacer la query correcta, quizas crear metodo para ejecutar order by saltando el parse de la query
-//        queryString = (/* "SELECT * FROM " + tableName + */ " ORDER BY puntosNec");
         preTime = System.nanoTime();
-  //      db.query(queryString);
+        db.order(tableName, "puntosNec");
         postTime = System.nanoTime();
         orderTime = (postTime - preTime);
 
         return new long[]{insertTime, orderTime};
 
+    }
+
+    private static void thirdExperiment(ExperimentDataGenerator src, Database text_db, Database btree_db) {
+        System.out.println("Tercer Experimento");
+        // TODO Make third experiment
     }
 
 }

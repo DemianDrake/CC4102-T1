@@ -16,6 +16,10 @@ public class Database {
 		rowCount = new HashMap<String, Integer>();
 		hasBTree = false;
 	}
+
+	public boolean usesBTree(){
+		return this.hasBTree;
+	}
 	
 	public void createTable(String tablename) {
 		// Creates a data storage unit, delegating its type and form to DataManager
@@ -40,7 +44,8 @@ public class Database {
 		}
 	}
 	
-	public void ordenar(String table, String key) {
+	public void order(String table, String key) {
+		// TODO No veo que use la key, en que momento decide por que valor ordena?
 		String inputfile = manager.getPath() + table + ".txt";
 		String outputfile = manager.getPath() + "results.txt";
 		Comparator<String> comparator = new Comparator<String>() {

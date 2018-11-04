@@ -5,23 +5,8 @@ import java.util.concurrent.ThreadLocalRandom;
 // Generates data for the experiments
 public class ExperimentDataGenerator {
 
-    private int currentProductId;
-    private int currentClientId;
-
     // Creates a new data generator
     public ExperimentDataGenerator() {
-        this.currentProductId = 1;
-        this.currentClientId = 1;
-    }
-
-    // Resets current product id of the generator
-    public void resetProductId() {
-        this.currentProductId = 1;
-    }
-
-    // Resets current client id of the generator
-    public void resetClientId() {
-        this.currentClientId = 1;
     }
 
     /* Creates a new random product. Prices are generated randomly between 100 and 10000000 and
@@ -32,8 +17,6 @@ public class ExperimentDataGenerator {
         double prizePointsScaling = ThreadLocalRandom.current().nextDouble(0.004, 0.12);
         nodo newProduct = new nodo();
         newProduct.put("Tabla", "producto");
-        newProduct.put("id", Integer.toString(currentProductId));
-        this.currentProductId += 1;
         newProduct.put("precio", Integer.toString(randomPrice));
         newProduct.put("puntosNec", Integer.toString((int) (randomPrice * necessaryPointsScaling)));
         newProduct.put("puntosRec", Integer.toString((int) (randomPrice * prizePointsScaling)));
@@ -69,8 +52,6 @@ public class ExperimentDataGenerator {
         // Create new client
         nodo newClient = new nodo();
         newClient.put("Table", "cliente");
-        newClient.put("id", Integer.toString(currentClientId));
-        this.currentClientId += 1;
         newClient.put("rut", rut);
         newClient.put("puntosAcumulados", Integer.toString(randomPoints));
         return newClient;
