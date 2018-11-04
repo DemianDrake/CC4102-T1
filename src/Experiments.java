@@ -1,5 +1,8 @@
 package src;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 
 // Runs the experiments required
 public class Experiments {
@@ -119,6 +122,113 @@ public class Experiments {
 
     private static void thirdExperiment(ExperimentDataGenerator src, Database textDb, Database btreeDb) {
         System.out.println("Tercer Experimento");
+        int[] tenthPowersClients = {1, 2, 3};
+        int[] tenthPowersProducts = {1, 2, 3, 4};
+
+        //Create tables
+
+        String workingDir = System.getProperty("user.dir");
+
+        // Check pre-existence of client tables
+        int totalInserts;
+        for (int power : tenthPowersClients) {
+            String tablePathSimple = workingDir + "clientes_10^" + String.valueOf(power) + "_1";
+            String tablePathBTree = workingDir + "clientes_10^" + String.valueOf(power) + "_2";
+            // Text db client pre-existence
+            if (!Files.exists(Paths.get(tablePathSimple))) {
+                textDb.createTable("clientes_10^" + String.valueOf(power) + "_1");
+                totalInserts = (int) Math.pow(10, power);
+                nodo[] nodeInserts = new nodo[totalInserts];
+                for (int i = 0; i < totalInserts; i++) {
+                    nodeInserts[i] = src.generateClient();
+                }
+                for (int i = 0; i < totalInserts; i++) {
+                    textDb.insert(nodeInserts[i]);
+                }
+            }
+            // BTree db client pre-existence
+            if (!Files.exists(Paths.get(tablePathBTree))) {
+                btreeDb.createTable("clientes_10^" + String.valueOf(power) + "_2");
+                // TODO hacer el BTree para puntosAcumulados
+                totalInserts = (int) Math.pow(10, power);
+                nodo[] nodeInserts = new nodo[totalInserts];
+                for (int i = 0; i < totalInserts; i++) {
+                    nodeInserts[i] = src.generateClient();
+                }
+                for (int i = 0; i < totalInserts; i++) {
+                    btreeDb.insert(nodeInserts[i]);
+                }
+            }
+        }
+
+        // Create products tables
+        for (int power : tenthPowersProducts) {
+            // Text db products
+            textDb.createTable("productos_10^" + String.valueOf(power) + "_1");
+            totalInserts = (int) Math.pow(10, power);
+            nodo[] nodeInserts = new nodo[totalInserts];
+            for (int i = 0; i < totalInserts; i++) {
+                nodeInserts[i] = src.generateProduct();
+            }
+            for (int i = 0; i < totalInserts; i++) {
+                textDb.insert(nodeInserts[i]);
+            }
+            // BTree db products
+            btreeDb.createTable("productos_10^" + String.valueOf(power) + "_2");
+            // TODO hacer el BTree para puntosNec
+            totalInserts = (int) Math.pow(10, power);
+            nodeInserts = new nodo[totalInserts];
+            for (int i = 0; i < totalInserts; i++) {
+                nodeInserts[i] = src.generateProduct();
+            }
+            for (int i = 0; i < totalInserts; i++) {
+                btreeDb.insert(nodeInserts[i]);
+            }
+        }
+
+        // Run strategies
+        long result1, result2, result3;
+        for (int clientPower: tenthPowersClients) {
+            for (int productPower: tenthPowersProducts) {
+                result1 = firstStrategy(btreeDb, ("clientes_10^" + String.valueOf(clientPower) + "_2"),
+                        ("productos_10^" + String.valueOf(productPower) + "_2"));
+                result2 = secondStrategy(btreeDb, ("clientes_10^" + String.valueOf(clientPower) + "_2"),
+                        ("productos_10^" + String.valueOf(productPower) + "_2"));
+                result3 = thirdStrategy(btreeDb, ("clientes_10^" + String.valueOf(clientPower) + "_1"),
+                        ("productos_10^" + String.valueOf(productPower) + "_1"));
+                System.out.printf("- Resultados para 10^%d Clientes y 10^%d Productos:%n", clientPower, productPower);
+                System.out.printf("  * Tiempo primera estrategia: %d nanosegundos%n", result1);
+                System.out.printf("  * Tiempo segunda estrategia: %d nanosegundos%n", result2);
+                System.out.printf("  * Tiempo tercera estrategia: %d nanosegundos%n", result3);
+            }
+        }
+
+    }
+
+    private static long firstStrategy(Database db, String clientTable, String productTable){
+        long preTime, postTime;
+        preTime = System.nanoTime();
+        // TODO Hacer la primera estrategia, retornar el tiempo que toma
+        postTime = System.nanoTime();
+        return (postTime - preTime);
+    }
+
+    private static long secondStrategy(Database db, String clientTable, String productTable){
+        long preTime, postTime;
+        preTime = System.nanoTime();
+        // TODO Hacer la segunda estrategia, retornar el tiempo que toma
+        postTime = System.nanoTime();
+        return (postTime - preTime);
+    }
+
+    private static long thirdStrategy(Database db, String clientTable, String productTable){
+        long preTime, postTime;
+        preTime = System.nanoTime();
+        String clientOrdered = db.order(clientTable, "puntosAcumulados");
+        String productOrdered = db.order(productTable, "puntosNec");
+        // TODO Hacer la tercera estrategia, retornar el tiempo que toma
+        postTime = System.nanoTime();
+        return (postTime - preTime);
     }
 
 }

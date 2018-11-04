@@ -44,10 +44,10 @@ public class Database {
 		}
 	}
 	
-	public void order(String table, String key) {
+	public String order(String table, String key) {
 		// TODO No veo que use la key, en que momento decide por que valor ordena?
 		String inputfile = manager.getPath() + table + ".txt";
-		String outputfile = manager.getPath() + "results.txt";
+		String outputfile = manager.getPath() + String.valueOf(System.nanoTime()) + "_results.txt";
 		Comparator<String> comparator = new Comparator<String>() {
             public int compare(String r1, String r2){
                 return r1.compareTo(r2);}};
@@ -59,5 +59,6 @@ public class Database {
 			System.out.println("An error has ocurred in src.Database.ordenar by ExternalSort methods");
 			e.printStackTrace();
 		}
+		return outputfile;
 	}
 }
