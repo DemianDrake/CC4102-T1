@@ -36,7 +36,11 @@ public class Database {
 		}
 		
 		public List<long> search(String id) {
-			return tree.search_by_id(id);
+			return tree.search_by_key(id);
+		}
+		
+		public List<long> searchRange(String min, String max) {
+			return tree.search_by_key_range(min, max);
 		}
 	}
 	
@@ -81,7 +85,7 @@ public class Database {
 		String targetFilename = manager.getPath() + "results" + String.valueOf(System.nanoTime()) + ".txt";
 		RandomAccessFile source = new RandomAccessFile(srcFilename, "r");
 		RandomAccessFile target = new RandomAccessFile(targetFilename, "rw");
-		Iterator<long> fp = bTrees.get(srcFilename).search(id).iterator();
+		Iterator<Long> fp = bTrees.get(srcFilename).search(id).iterator();
 		while(fp.hasNext()) {
 			source.seek(fp.next());
 			target.writeChars(source.readLine());
@@ -93,25 +97,46 @@ public class Database {
 	/** Creates or modifies the "results.txt" file, writing the answer for the select
 	 *  query. This works for queries over two or more tables.
 	 *
-	 * @param src	An array containing the name of every table in the query
-	 * @param col	An array containing the columns to be compared (one for each table)
-	 * @param cmp 	What kind of comparison it will be (stub, for I don't know how it will be in BTree)
+	 * @param src	An array containing the name of every table in the query (size 2)
+	 * @param col	An array containing the columns to be compared (one for each table) (size 2)
+	 * @param cmp 	What kind of comparison it will be.
+	 *				Could be: "<" (if desired output fulfills col[0] < col[1]) or ">" (if col[0] > col[1])
 	 */
-	public void select(String[] src, String col[], String cmp /*???*/) {
+	public void select(String[] src, String col[], String cmp) {
 		String tgtFName = manager.getPath() + "results" + String.valueOf(System.nanoTime()) + ".txt";
 		RandomAccessFile target = new RandomAccessFile(tgtFName, "rw");
-		int i, l = src.length;
+		int i, l = 2;
 		String[] srcFName = new String[l];
 		RandomAccessFile[] src = new RandomAccessFile[l];
 		for(i = 0; i < l; i++) {
 			srcFName[i] = manager.getPath() + src + ".txt";
 			src[i] = new RandomAccessFile(srcFName[i], "r");
 		}
-		// TODO: Somehow search in every src comparing to the column value
-		Iterator<long> fp = bTrees.get(srcFName).search(id).iterator();
-		while(fp.hasNext()) {
-			source.seek(fp.next());
-			target.writeChars(source.readLine());
+		Iterator<Long> fp;
+		String currentLine = "";
+		nodo currentNode;
+		String nodeData;
+		while(currentLine != null) {
+			switch(cmp) {
+				case "<":
+					currentLine = src[0].readLine();
+					currentNode = nodo.strToNode(currentLine);
+					nodeData = currentNode.getValueAsString(col[0]);
+					fp = bTrees.get(srcFName[1]).searchRange("", nodeData).iterator();
+					break;
+				case ">":
+					currentLine = src[1].readLine();
+					currentNode = nodo.strToNode(currentLine);
+					nodeData = currentNode.getValueAsString(col[1]);
+					fp = bTrees.get(srcFName[0]).searchRange("", nodeData).iterator();
+					break;
+				default:
+					System.out.println("Error ocurred in Database > select.\nWrong comparator");
+			}
+			while(fp.hasNext()) {
+				source.seek(fp.next());
+				target.writeChars(currentLine + " -> " + source.readLine());
+			}
 		}
 		target.close();
 		for(i = 0; i < l; i++) {
