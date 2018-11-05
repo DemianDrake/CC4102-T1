@@ -1,4 +1,5 @@
-package src;
+import java.util.List;
+import java.util.ArrayList;
 
 
 public class BTree {
@@ -34,6 +35,76 @@ public class BTree {
 			this.size+=1;
 		}
 		
+	}
+	
+	public static class RangeList{
+		
+		private long puntero;
+		private RangeList next;
+		
+		public RangeList(long puntero) {
+			this.puntero=puntero;
+		}
+		
+		public long get_puntero() {
+			return this.puntero;
+		}
+		
+		public RangeList get_next() {
+			return this.next;
+		}
+		
+		public void set_puntero(long new_puntero) {
+			this.puntero=new_puntero;
+		}
+		
+		public void set_next(RangeList new_next) {
+			this.next=new_next;
+		}
+		
+		public void append_puntero(long puntero) {
+			RangeList aux = new RangeList(puntero);
+			this.append_RangeList(aux);
+		}
+		
+		public void append_RangeList(RangeList to_append) {
+			if(this.get_next()==null) {
+				this.set_next(to_append);
+			}
+			else {
+				this.get_next().append_RangeList(to_append);
+			}
+		}
+		
+		public long[] to_longarray() {
+			int length=1;
+			RangeList aux=this;
+			while(aux.get_next()!=null) {
+				length+=1;
+				aux=aux.get_next();
+			}
+			long[] resp = new long[length];
+			int index=0;
+			aux=this;
+			resp[index]=this.get_puntero();
+			while(aux.get_next()!=null) {
+				index+=1;
+				aux=aux.get_next();
+				resp[index]=this.get_puntero();
+			}
+			return resp;
+		}
+		
+		public List<Long> toJavaList() {
+            List<Long> ret = new ArrayList<Long>();
+            ret.add(puntero);
+            RangeList tmp = this;
+            while(tmp.get_next() != null) {
+                tmp = tmp.next;
+                ret.add(tmp.get_puntero());
+            }
+            return ret;
+        }
 	}
 	
 	 private static class Entry {
@@ -115,8 +186,8 @@ public class BTree {
 		return this.height;
 	}
 	
-	public long search_by_id(String id) {
-		return search(this.root, id, this.height);
+	public long search_by_key(String key) {
+		return search(this.root, key, this.height);
 	}
 	
 	public long search(BNode node, String id, int height) {
@@ -138,6 +209,42 @@ public class BTree {
 			}
 		}
 		return -1;
+	}
+	
+	public RangeList search_by_key_range(String key_min, String key_max) {
+		return search_range(this.root, key_min, key_max, this.height);
+	}
+	
+	public RangeList search_range(BNode node, String key_min, String key_max, int height) {
+		RangeList resp = null;
+		Entry[] data = node.get_data();
+		//hoja
+		if(height==0) {
+			for(int i=0; i<node.get_size();i++) {
+				if(data[i].get_key().compareTo(key_min)>=0 && data[i].get_key().compareTo(key_max)<=0) {
+					if(resp==null) {
+						resp = new RangeList(data[i].get_val());
+					}
+					else {
+						resp.append_puntero(data[i].get_val());
+					}
+				}
+			}
+		}
+		else {
+			for(int i=0; i<node.get_size();i++) {
+				if(i+1==node.get_size() || key_max.compareTo(data[i+1].get_key())>0 || key_min.compareTo(data[i+1].get_key())<0) {
+					//return search(data[i].get_next(),id,height-1);
+					if(resp==null) {
+						resp = search_range(data[i].get_next(), key_min, key_max, height-1);
+					}
+					else {
+						resp.append_RangeList(search_range(data[i].get_next(), key_min, key_max, height-1));
+					}
+				}
+			}
+		}
+		return resp;
 	}
 	
 	public void put(String key, long puntero) {
