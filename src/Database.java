@@ -34,6 +34,10 @@ public class Database {
 		public void put(long filepointer) {
 			tree.put(key, filepointer);
 		}
+		
+		public List<long> search(String id) {
+			return tree.search_by_id(id);
+		}
 	}
 	
 	public Database(String path, boolean hasBTree) {
@@ -60,9 +64,59 @@ public class Database {
 	public void createTable(String tablename, String treeKey) {
 		if(hasBTree) {
 			bTrees.put(tablename, new KeyedBTree());
-			bTrees.get("tablename").setTreeKey(treeKey);
+			bTrees.get(tablename).setTreeKey(treeKey);
 		}
 		createTable(tablename);
+	}
+	
+	/** Creates or modifies the "results.txt" file, writing the answer for the select
+	 *  query.
+	 *
+	 * @param colum		The column to be compared of the row to be selected
+	 * @param from		The name of the file where the data is stored (example)
+	 * @param key		The value expected for the column to search (must be the SAME value)
+	 */
+	public void select(String src, String column, String id) {
+		String srcFilename = manager.getPath() + src + ".txt";
+		String targetFilename = manager.getPath() + "results" + String.valueOf(System.nanoTime()) + ".txt";
+		RandomAccessFile source = new RandomAccessFile(srcFilename, "r");
+		RandomAccessFile target = new RandomAccessFile(targetFilename, "rw");
+		Iterator<long> fp = bTrees.get(srcFilename).search(id).iterator();
+		while(fp.hasNext()) {
+			source.seek(fp.next());
+			target.writeChars(source.readLine());
+		}
+		source.close();
+		target.close();
+	}
+	
+	/** Creates or modifies the "results.txt" file, writing the answer for the select
+	 *  query. This works for queries over two or more tables.
+	 *
+	 * @param src	An array containing the name of every table in the query
+	 * @param col	An array containing the columns to be compared (one for each table)
+	 * @param cmp 	What kind of comparison it will be (stub, for I don't know how it will be in BTree)
+	 */
+	public void select(String[] src, String col[], String cmp /*???*/) {
+		String tgtFName = manager.getPath() + "results" + String.valueOf(System.nanoTime()) + ".txt";
+		RandomAccessFile target = new RandomAccessFile(tgtFName, "rw");
+		int i, l = src.length;
+		String[] srcFName = new String[l];
+		RandomAccessFile[] src = new RandomAccessFile[l];
+		for(i = 0; i < l; i++) {
+			srcFName[i] = manager.getPath() + src + ".txt";
+			src[i] = new RandomAccessFile(srcFName[i], "r");
+		}
+		// TODO: Somehow search in every src comparing to the column value
+		Iterator<long> fp = bTrees.get(srcFName).search(id).iterator();
+		while(fp.hasNext()) {
+			source.seek(fp.next());
+			target.writeChars(source.readLine());
+		}
+		target.close();
+		for(i = 0; i < l; i++) {
+			src[i].close();
+		}
 	}
 	
 	public void insert(nodo data) {
@@ -79,7 +133,7 @@ public class Database {
 	
 	public String order(String table, String key) {
 		String inputfile = manager.getPath() + table + ".txt";
-		String outputfile = manager.getPath() + String.valueOf(System.nanoTime()) + "_results.txt";
+		String outputfile = manager.getPath() + "tmpOrder" + String.valueOf(System.nanoTime()) + ".txt";
 		Comparator<String> comparator = new Comparator<String>() {
             public int compare(String r1, String r2) {
             	// Supposedly r1 and r2 are rows, therefore nodes
