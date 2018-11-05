@@ -7,14 +7,42 @@ import java.util.*;
 public class Database {
 	private DataManager manager;
 	private Map<String, Integer> rowCount;
-	private Map<String, BTree> bTrees;
+	private Map<String, KeyedBTree> bTrees;
 	private boolean hasBTree;
 	private static final int B = 42; // stub
+	
+	private class KeyedBTree {
+		private BTree tree;
+		private String key; // Probably could be a better name for this
+		
+		public KeyedBTree() {
+			this.tree = new BTree(B);
+		}
+		
+		public void setTreeKey(String newKey) {
+			key = newKey;
+		}
+		
+		public BTree getTree() {
+			return tree;
+		}
+		
+		public String getTreeKey() {
+			return key;
+		}
+		
+		public void put(long filepointer) {
+			tree.put(key, filepointer);
+		}
+	}
 	
 	public Database(String path, boolean hasBTree) {
 		manager = new TextFile(path);
 		rowCount = new HashMap<String, Integer>();
 		this.hasBTree = hasBTree;
+		if(hasBTree) {
+			bTrees = new HashMap<String, KeyedBTree>();
+		}
 	}
 
 	public boolean usesBTree(){
@@ -27,9 +55,14 @@ public class Database {
 		if(!manager.create(tablename)) {
 			System.out.printf("An error ocurring while creating table %s", tablename);
 		}
+	}
+	
+	public void createTable(String tablename, String treeKey) {
 		if(hasBTree) {
-			bTrees.put(tablename, new BTree(B));
+			bTrees.put(tablename, new KeyedBTree());
+			bTrees.get("tablename").setTreeKey(treeKey);
 		}
+		createTable(tablename);
 	}
 	
 	public void insert(nodo data) {
@@ -40,7 +73,7 @@ public class Database {
 		rowCount.put(tablename, id);
 		long fp = manager.insertLine(data);
 		if(hasBTree) {
-			bTrees.get(tablename).put("id", fp);
+			bTrees.get(tablename).put(fp);
 		}
 	}
 	
