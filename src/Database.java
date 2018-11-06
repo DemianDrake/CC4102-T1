@@ -38,12 +38,11 @@ public class Database {
         }
 
         public List<Long> search(String id) {
-            // TODO No sé como arreglar esto, no devuelve una lista
             return tree.search_by_key(id);
         }
 
         public List<Long> searchRange(String min, String max) {
-            return tree.search_by_key_range(min, max).toJavaList();
+            return tree.search_by_key_range(min, max);
         }
     }
 
@@ -111,8 +110,9 @@ public class Database {
      * @param col An array containing the columns to be compared (one for each table) (size 2)
      * @param cmp What kind of comparison it will be.
      *            Could be: "<" (if desired output fulfills col[0] < col[1]) or ">" (if col[0] > col[1])
+     * @throws IOException 
      */
-    public void select(String[] src, String col[], String cmp) throws FileNotFoundException {
+    public void select(String[] src, String col[], String cmp) throws IOException {
         String tgtFName = manager.getPath() + "results" + String.valueOf(System.nanoTime()) + ".txt";
         RandomAccessFile target = new RandomAccessFile(tgtFName, "rw");
         int i, l = 2;
@@ -126,6 +126,7 @@ public class Database {
         String currentLine = "";
         nodo currentNode;
         String nodeData;
+        RandomAccessFile source;
         while (currentLine != null) {
             try {
                 switch (cmp) {
@@ -134,12 +135,22 @@ public class Database {
                         currentNode = nodo.strToNode(currentLine);
                         nodeData = currentNode.getValueAsString(col[0]);
                         fp = bTrees.get(srcFName[1]).searchRange("", nodeData).iterator();
+                        source = srcArr[1];
+                        while (fp.hasNext()) {
+                            source.seek(fp.next());
+                            target.writeChars(currentLine + " -> " + source.readLine());
+                        }
                         break;
                     case ">":
                         currentLine = srcArr[1].readLine();
                         currentNode = nodo.strToNode(currentLine);
                         nodeData = currentNode.getValueAsString(col[1]);
                         fp = bTrees.get(srcFName[0]).searchRange("", nodeData).iterator();
+                        source = srcArr[0];
+                        while (fp.hasNext()) {
+                            source.seek(fp.next());
+                            target.writeChars(currentLine + " -> " + source.readLine());
+                        }
                         break;
                     default:
                         System.out.println("Error ocurred in Database > select.\nWrong comparator");
@@ -148,11 +159,6 @@ public class Database {
             } catch (IOException e) {
                 System.out.println(e.toString());
                 System.exit(1);
-            }
-            while (fp.hasNext()) {
-                // TODO source no esta definido, no se a que variable se refiere
-                source.seek(fp.next());
-                target.writeChars(currentLine + " -> " + source.readLine());
             }
         }
         try {

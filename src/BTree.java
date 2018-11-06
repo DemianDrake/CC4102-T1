@@ -210,8 +210,8 @@ public class BTree {
         return -1;
     }
 
-    public RangeList search_by_key_range(String key_min, String key_max) {
-        return search_range(this.root, key_min, key_max, this.height);
+    public List<Long> search_by_key_range(String key_min, String key_max) {
+        return search_range(this.root, key_min, key_max, this.height).toJavaList();
     }
 
     public RangeList search_range(BNode node, String key_min, String key_max, int height) {
