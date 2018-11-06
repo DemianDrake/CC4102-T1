@@ -187,13 +187,13 @@ public class Experiments {
 
         // Run strategies
         long result1, result2, result3;
-        for (int clientPower: tenthPowersClients) {
-            for (int productPower: tenthPowersProducts) {
+        for (int clientPower : tenthPowersClients) {
+            for (int productPower : tenthPowersProducts) {
                 result1 = firstStrategy(btreeDb, ("clientes_10^" + String.valueOf(clientPower) + "_2"),
                         ("productos_10^" + String.valueOf(productPower) + "_2"));
                 result2 = secondStrategy(btreeDb, ("clientes_10^" + String.valueOf(clientPower) + "_2"),
                         ("productos_10^" + String.valueOf(productPower) + "_2"));
-                result3 = thirdStrategy(btreeDb, ("clientes_10^" + String.valueOf(clientPower) + "_1"),
+                result3 = thirdStrategy(textDb, ("clientes_10^" + String.valueOf(clientPower) + "_1"),
                         ("productos_10^" + String.valueOf(productPower) + "_1"));
                 System.out.printf("- Resultados para 10^%d Clientes y 10^%d Productos:%n", clientPower, productPower);
                 System.out.printf("  * Tiempo primera estrategia: %d nanosegundos%n", result1);
@@ -204,15 +204,16 @@ public class Experiments {
 
     }
 
-    private static long firstStrategy(Database db, String clientTable, String productTable){
+    private static long firstStrategy(Database db, String clientTable, String productTable) {
         long preTime, postTime;
         preTime = System.nanoTime();
+
         // TODO Hacer la primera estrategia, retornar el tiempo que toma
         postTime = System.nanoTime();
         return (postTime - preTime);
     }
 
-    private static long secondStrategy(Database db, String clientTable, String productTable){
+    private static long secondStrategy(Database db, String clientTable, String productTable) {
         long preTime, postTime;
         preTime = System.nanoTime();
         // TODO Hacer la segunda estrategia, retornar el tiempo que toma
@@ -220,7 +221,7 @@ public class Experiments {
         return (postTime - preTime);
     }
 
-    private static long thirdStrategy(Database db, String clientTable, String productTable){
+    private static long thirdStrategy(Database db, String clientTable, String productTable) {
         long preTime, postTime;
         preTime = System.nanoTime();
         String clientOrdered = db.order(clientTable, "puntosAcumulados");
