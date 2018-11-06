@@ -186,28 +186,37 @@ public class BTree {
         return this.height;
     }
 
-    public long search_by_key(String key) {
-        return search(this.root, key, this.height);
+    public List<Long> search_by_key(String key) {
+        return search(this.root, key, this.height).toJavaList();
     }
 
-    public long search(BNode node, String id, int height) {
+    public RangeList search(BNode node, String id, int height) {
+    	RangeList resp = null;
         Entry[] data = node.get_data();
 
         //hoja
         if (height == 0) {
             for (int i = 0; i < node.get_size(); i++) {
                 if (data[i].get_key().compareTo(id) == 0) {
-                    return data[i].get_val();
+                	if(resp == null) {
+                        resp = new RangeList(data[i].get_val());
+                	} else {
+                		resp.append_puntero(data[i].get_val());
+                	}
                 }
             }
         } else {
             for (int i = 0; i < node.get_size(); i++) {
                 if (i + 1 == node.get_size() || id.compareTo(data[i + 1].get_key()) < 0) {
-                    return search(data[i].get_next(), id, height - 1);
+                	if(resp == null) {
+                        resp = search(data[i].get_next(), id, height - 1);
+                	} else {
+                		resp.append_RangeList(search(data[i].get_next(), id, height - 1));
+                	}
                 }
             }
         }
-        return -1;
+        return resp;
     }
 
     public List<Long> search_by_key_range(String key_min, String key_max) {
