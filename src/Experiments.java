@@ -1,5 +1,6 @@
 package src;
 
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -7,7 +8,7 @@ import java.nio.file.Paths;
 // Runs the experiments required
 public class Experiments {
 
-    public static void main(String args[]) {
+    public static void main(String args[]) throws IOException {
         /* args[] are the powers of tenth that are used to run the experiments, they must be integers (as Strings), and
          * the last one is used to determine if the third experiment is run: if it's 1 the experiment runs, if it's 0
          * the experiment is skipped and if it's any other exits the program with exit code 1.
@@ -119,7 +120,8 @@ public class Experiments {
 
     }
 
-    private static void thirdExperiment(ExperimentDataGenerator src, Database textDb, Database btreeDb) {
+    private static void thirdExperiment(ExperimentDataGenerator src, Database textDb, Database btreeDb) throws
+            IOException {
         System.out.println("Tercer Experimento");
         int[] tenthPowersClients = {1, 2, 3};
         int[] tenthPowersProducts = {1, 2, 3, 4};
@@ -207,7 +209,6 @@ public class Experiments {
     private static long firstStrategy(Database db, String clientTable, String productTable) {
         long preTime, postTime;
         preTime = System.nanoTime();
-
         // TODO Hacer la primera estrategia, retornar el tiempo que toma
         postTime = System.nanoTime();
         return (postTime - preTime);
@@ -216,18 +217,43 @@ public class Experiments {
     private static long secondStrategy(Database db, String clientTable, String productTable) {
         long preTime, postTime;
         preTime = System.nanoTime();
+
         // TODO Hacer la segunda estrategia, retornar el tiempo que toma
         postTime = System.nanoTime();
         return (postTime - preTime);
     }
 
-    private static long thirdStrategy(Database db, String clientTable, String productTable) {
+    private static long thirdStrategy(Database db, String clientTable, String productTable) throws IOException {
         long preTime, postTime;
+        nodo client, product;
+        String clientStr, productStr;
+        String newLine = "\n";
+        RandomAccessFile target = new RandomAccessFile(
+                System.getProperty("user.dir") + "results" + String.valueOf(System.nanoTime()) + ".txt",
+                "rw");
         preTime = System.nanoTime();
         String clientOrdered = db.order(clientTable, "puntosAcumulados");
         String productOrdered = db.order(productTable, "puntosNec");
-        // TODO Hacer la tercera estrategia, retornar el tiempo que toma
+        BufferedReader orderedClients = new BufferedReader(new FileReader(clientOrdered));
+        BufferedReader orderedProducts = new BufferedReader(new FileReader(productOrdered));
+        while ((clientStr = orderedClients.readLine()) != null) {
+            client = nodo.strToNode(clientStr);
+            int puntosAcc = Integer.valueOf(client.getValueAsString("puntosAcumulados"));
+            while ((productStr = orderedProducts.readLine()) != null) {
+                product = nodo.strToNode(productStr);
+                int puntosNec = Integer.valueOf(product.getValueAsString("puntosNec"));
+                if (puntosAcc < puntosNec) {
+                    break;
+                } else {
+                    target.writeChars(client.toString().replace(newLine, "") + product.toString());
+                }
+            }
+
+        }
         postTime = System.nanoTime();
+        orderedClients.close();
+        orderedProducts.close();
+        target.close();
         return (postTime - preTime);
     }
 
